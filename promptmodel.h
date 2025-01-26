@@ -7,6 +7,7 @@
 #include <QList>
 #include <QDateTime>
 #include <QDebug>
+
 class PromptModel : public QAbstractTableModel
 {
     Q_OBJECT
@@ -25,6 +26,9 @@ public:
     void addNewRow();
     // 判断是否是最后一行
     bool isNewPageRow(int row) const;
+
+    // 重命名为 setModelData 以避免与基类的 setData 冲突
+    void setModelData(const QList<QList<QVariant>>& newData);
 
 private:
     QList<QList<QVariant>> _data;

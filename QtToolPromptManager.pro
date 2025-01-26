@@ -17,7 +17,8 @@ SOURCES += \
     promptmanager.cpp \
     promptmodel.cpp \
     prompttoolbar.cpp \
-    backupmanager.cpp
+    backupmanager.cpp \
+    tagfilterwidget.cpp
 
 HEADERS += \
     promptdb.h \
@@ -27,7 +28,8 @@ HEADERS += \
     promptmanager.h \
     promptmodel.h \
     prompttoolbar.h \
-    backupmanager.h
+    backupmanager.h \
+    tagfilterwidget.h
 
 
 

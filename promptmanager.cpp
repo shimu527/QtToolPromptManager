@@ -1,5 +1,6 @@
 ﻿#include "promptmanager.h"
 #include "backupmanager.h"
+#include "tagfilterwidget.h"
 
 PromptManager::PromptManager(PromptDB* db, QWidget* parent)
     : QMainWindow(parent), db(db), model(nullptr),listView(nullptr), galleryView(nullptr){
@@ -19,7 +20,7 @@ PromptManager::PromptManager(PromptDB* db, QWidget* parent)
 
 void PromptManager::initUI() {
     setWindowTitle("Prompt Manager");
-    setGeometry(100, 100, 800, 600);
+    setGeometry(100, 100, 1024, 768);  // 调整窗口大小
 
     // 创建工具栏
     toolBar = new PromptToolBar(this);
@@ -37,29 +38,44 @@ void PromptManager::initUI() {
     connect(toolBar, &PromptToolBar::searchTextChanged, this, &PromptManager::searchPrompts);
     connect(toolBar, &PromptToolBar::sortIndexChanged, this, &PromptManager::loadData);
 
-    // 创建标签页控件
-    QTabWidget* tabWidget = new QTabWidget(this);
+    // 创建主窗口的中心部件
+    QWidget* centralWidget = new QWidget(this);
+    QHBoxLayout* mainLayout = new QHBoxLayout(centralWidget);
+
+    // 创建左侧标签筛选部件
+    tagFilter = new TagFilterWidget(this);
+    tagFilter->setMaximumWidth(200);  // 设置最大宽度
+    QVBoxLayout* leftLayout = new QVBoxLayout();
+    leftLayout->addWidget(new QLabel("标签筛选", this));
+    leftLayout->addWidget(tagFilter);
+    leftLayout->addStretch();  // 添加弹性空间
+
+    // 创建右侧视图区域
+    QTabWidget* viewsTabWidget = new QTabWidget(this);
 
     // 创建表格视图
     tableView = new QTableView(this);
     tableView->setSelectionMode(QAbstractItemView::MultiSelection);
     tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    tabWidget->addTab(tableView, "表格视图");
+    viewsTabWidget->addTab(tableView, "表格视图");
 
     //暂时不删除这个connect连接注释
     // connect(tableView, &QTableView::doubleClicked, this, &PromptManager::editPromptDialog);
 
-
     // 创建列表视图
     listView = new PromptListView(this);
-    tabWidget->addTab(listView, "列表视图");
+    viewsTabWidget->addTab(listView, "列表视图");
 
     // 创建画廊视图
     galleryView = new PromptGalleryView(this);
-    tabWidget->addTab(galleryView, "画廊视图");
+    viewsTabWidget->addTab(galleryView, "画廊视图");
+
+    // 将左侧标签筛选和右侧视图添加到主布局
+    mainLayout->addLayout(leftLayout);
+    mainLayout->addWidget(viewsTabWidget, 1);  // 1 表示拉伸因子
 
     // 设置主窗口的中心部件
-    setCentralWidget(tabWidget);
+    setCentralWidget(centralWidget);
 
     // 状态栏
     statusBar = new QStatusBar(this);
@@ -68,6 +84,11 @@ void PromptManager::initUI() {
 
     // 连接表格视图的双击信号
     connect(tableView, &QTableView::doubleClicked, this, &PromptManager::tableViewDoubleClicked);
+
+    // 连接标签选择信号
+    connect(tagFilter, &TagFilterWidget::tagsSelected, 
+            this, &PromptManager::filterByTags,
+            Qt::QueuedConnection);// 使用队列连接以避免可能的死锁
 }
 
 
@@ -126,6 +147,8 @@ void PromptManager::loadData() {
 
         // 更新画廊视图
         galleryView->setData(prompts);
+
+        updateTagList();
 
         statusBar->showMessage(QString("Loaded %1 prompts").arg(prompts.size()));
     } catch (const std::exception& e) {
@@ -504,3 +527,44 @@ void PromptManager::onBackupRestored() {
     statusBar->showMessage("Backup restored successfully", 3000);
     loadData(); // 重新加载数据
 }
+
+void PromptManager::updateTagList() {
+    QStringList allTags = db->getAllTags();
+    tagFilter->updateTags(allTags);
+}
+
+void PromptManager::filterByTags(const QStringList& tags) {
+    qDebug() << "Filtering by tags:" << tags;
+    
+    if (tags.isEmpty()) {
+        loadData();
+        return;
+    }
+    
+    QList<QList<QVariant>> filteredData = db->getPromptsByTags(tags);
+    qDebug() << "Filtered data count:" << filteredData.size();
+    
+    // 更新表格视图
+    if (model) {
+        model->setModelData(filteredData);
+    }
+    
+    // 更新列表视图
+    QStringList titles;
+    for (const auto& row : filteredData) {
+        if (row.size() > 2) {
+            titles.append(row[2].toString());
+        }
+    }
+    if (listView) {
+        listView->setData(titles);
+    }
+    
+    // 更新画廊视图
+    if (galleryView) {
+        galleryView->setData(filteredData);
+    }
+    
+    statusBar->showMessage(QString("Found %1 prompts with selected tags").arg(filteredData.size()));
+}
+

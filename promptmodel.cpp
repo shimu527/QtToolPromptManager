@@ -78,3 +78,9 @@ void PromptModel::addNewRow() {
 bool PromptModel::isNewPageRow(int row) const {
     return row == _data.size();
 }
+
+void PromptModel::setModelData(const QList<QList<QVariant>>& newData) {
+    beginResetModel();
+    _data = newData;
+    endResetModel();
+}

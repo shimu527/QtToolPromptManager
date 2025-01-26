@@ -28,6 +28,7 @@
 #include "prompttoolbar.h"
 #include "promptdialog.h"
 #include "backupmanager.h"
+#include "tagfilterwidget.h"
 
 class PromptManager : public QMainWindow {
     Q_OBJECT
@@ -71,6 +72,10 @@ private:
     PromptToolBar* toolBar;
 
     BackupManager* backupManager;
+
+    TagFilterWidget* tagFilter;
+    void updateTagList();
+    void filterByTags(const QStringList& tags);
 
 };
 

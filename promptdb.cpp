@@ -156,3 +156,46 @@ void PromptDB::close() {
         db.close();
     }
 }
+
+QStringList PromptDB::getAllTags() {
+    QStringList tags;
+    QSqlQuery query(db);
+    query.prepare("SELECT DISTINCT tags FROM prompts WHERE tags IS NOT NULL AND tags != ''");
+    
+    if (query.exec()) {
+        while (query.next()) {
+            tags << query.value(0).toString();
+        }
+    }
+    return tags;
+}
+
+QList<QVariantList> PromptDB::getPromptsByTags(const QStringList& tags) {
+    QList<QVariantList> results;
+    QSqlQuery query(db);
+    
+    // 构建查询条件
+    QStringList conditions;
+    for (const QString& tag : tags) {
+        // 使用 LIKE 进行模糊匹配，确保标签是独立的
+        conditions << QString("(',' || tags || ',' LIKE '%," + tag.trimmed() + ",%')");
+    }
+    
+    QString queryStr = "SELECT * FROM prompts WHERE " + conditions.join(" AND ");
+    qDebug() << "Query:" << queryStr; // 添加调试输出
+    
+    if (query.exec(queryStr)) {
+        while (query.next()) {
+            QVariantList row;
+            for (int i = 0; i < query.record().count(); ++i) {
+                row << query.value(i);
+            }
+            results << row;
+        }
+    } else {
+        qDebug() << "Query failed:" << query.lastError().text();
+    }
+    
+    qDebug() << "Found" << results.size() << "results"; // 添加调试输出
+    return results;
+}

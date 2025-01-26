@@ -9,6 +9,7 @@
 #include <QDateTime>
 #include <QString>
 #include <QVariant>
+#include <QSqlRecord>
 class PromptDB
 {
 public:
@@ -24,6 +25,8 @@ public:
     QList<QVariantList> getPromptHistory(int promptId);
     void close();
     QString getDatabasePath() const { return dbName; }
+    QStringList getAllTags();
+    QList<QVariantList> getPromptsByTags(const QStringList& tags);
 
 private:
     QString dbName;
