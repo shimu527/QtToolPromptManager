@@ -16,7 +16,8 @@ SOURCES += \
     promptdialog.cpp \
     promptmanager.cpp \
     promptmodel.cpp \
-    prompttoolbar.cpp
+    prompttoolbar.cpp \
+    backupmanager.cpp
 
 HEADERS += \
     promptdb.h \
@@ -25,7 +26,8 @@ HEADERS += \
     promptdialog.h \
     promptmanager.h \
     promptmodel.h \
-    prompttoolbar.h
+    prompttoolbar.h \
+    backupmanager.h
 
 
 

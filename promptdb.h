@@ -23,6 +23,7 @@ public:
     QList<QVariantList> getPrompts(const QString& keyword = QString());
     QList<QVariantList> getPromptHistory(int promptId);
     void close();
+    QString getDatabasePath() const { return dbName; }
 
 private:
     QString dbName;

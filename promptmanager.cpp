@@ -1,7 +1,18 @@
 ﻿#include "promptmanager.h"
+#include "backupmanager.h"
 
 PromptManager::PromptManager(PromptDB* db, QWidget* parent)
     : QMainWindow(parent), db(db), model(nullptr),listView(nullptr), galleryView(nullptr){
+    
+    // 创建备份管理器
+    backupManager = new BackupManager(db->getDatabasePath(), this);
+    connect(backupManager, &BackupManager::backupCreated, this, &PromptManager::onBackupCreated);
+    connect(backupManager, &BackupManager::backupFailed, this, &PromptManager::onBackupFailed);
+    connect(backupManager, &BackupManager::backupRestored, this, &PromptManager::onBackupRestored);
+    
+    // 启动自动备份（每30分钟）
+    backupManager->startAutoBackup(30);
+    
     initUI();
     loadData();
 }
@@ -479,4 +490,17 @@ void PromptManager::tableViewDoubleClicked(const QModelIndex& index) {
         // 否则，调用 editPromptDialog
         editPromptDialog();
     }
+}
+
+void PromptManager::onBackupCreated(const QString& path) {
+    statusBar->showMessage(QString("Backup created: %1").arg(path), 3000);
+}
+
+void PromptManager::onBackupFailed(const QString& error) {
+    QMessageBox::warning(this, "Backup Failed", error);
+}
+
+void PromptManager::onBackupRestored() {
+    statusBar->showMessage("Backup restored successfully", 3000);
+    loadData(); // 重新加载数据
 }

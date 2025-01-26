@@ -27,6 +27,7 @@
 #include "GalleryView/promptgalleryview.h"
 #include "prompttoolbar.h"
 #include "promptdialog.h"
+#include "backupmanager.h"
 
 class PromptManager : public QMainWindow {
     Q_OBJECT
@@ -53,6 +54,10 @@ private slots:
 
     void tableViewDoubleClicked(const QModelIndex& index);
 
+    void onBackupCreated(const QString& path);
+    void onBackupFailed(const QString& error);
+    void onBackupRestored();
+
 private:
     void initUI();
 
@@ -64,6 +69,8 @@ private:
     PromptListView* listView;
     PromptGalleryView* galleryView;
     PromptToolBar* toolBar;
+
+    BackupManager* backupManager;
 
 };
 
