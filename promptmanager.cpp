@@ -26,31 +26,29 @@ void PromptManager::initUI() {
     connect(toolBar, &PromptToolBar::searchTextChanged, this, &PromptManager::searchPrompts);
     connect(toolBar, &PromptToolBar::sortIndexChanged, this, &PromptManager::loadData);
 
-
-
-    // 创建主布局
-    QHBoxLayout* mainLayout = new QHBoxLayout();
+    // 创建标签页控件
+    QTabWidget* tabWidget = new QTabWidget(this);
 
     // 创建表格视图
     tableView = new QTableView(this);
     tableView->setSelectionMode(QAbstractItemView::MultiSelection);
     tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    mainLayout->addWidget(tableView);
+    tabWidget->addTab(tableView, "表格视图");
+
+    //暂时不删除这个connect连接注释
     // connect(tableView, &QTableView::doubleClicked, this, &PromptManager::editPromptDialog);
 
 
     // 创建列表视图
     listView = new PromptListView(this);
-    mainLayout->addWidget(listView);
+    tabWidget->addTab(listView, "列表视图");
 
     // 创建画廊视图
     galleryView = new PromptGalleryView(this);
-    mainLayout->addWidget(galleryView);
+    tabWidget->addTab(galleryView, "画廊视图");
 
     // 设置主窗口的中心部件
-    QWidget* centralWidget = new QWidget(this);
-    centralWidget->setLayout(mainLayout);
-    setCentralWidget(centralWidget);
+    setCentralWidget(tabWidget);
 
     // 状态栏
     statusBar = new QStatusBar(this);
@@ -475,7 +473,7 @@ void PromptManager::copyPrompt(const QString& text) {
 
 void PromptManager::tableViewDoubleClicked(const QModelIndex& index) {
     if (model->isNewPageRow(index.row())) {
-        // 如果点击的是最后一行（“+ New Row”），则调用 addPromptDialog
+        // 如果点击的是最后一行（"+ New Row"），则调用 addPromptDialog
         addPromptDialog();
     } else {
         // 否则，调用 editPromptDialog
